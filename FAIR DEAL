@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="WALKING FRIENG">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live Location Tracker</title>
+    <script src="https://www.gstatic.com/firebasejs/9.0.2/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.2/firebase-database.js"></script>
+    <script src="https://maps.googleapis.com/maps/api/js?key=YOUR_GOOGLE_MAPS_API_KEY"></script>
+</head>
+<body>
+    <h1>Live Location Tracker</h1>
+    <button onclick="startTracking()">Start Tracking</button>
+    <div id="map" style="width: 100%; height: 400px;"></div>
+    <p>Share your location: <a id="ruiru" href="#" target="_blank"></a></p>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "YOUR_FIREBASE_API_KEY",
+            authDomain: "your-project-id.firebaseapp.com",
+            databaseURL: "https://your-project-id-default-rtdb.firebaseio.com/",
+            projectId: "your-project-id",
+            storageBucket: "your-project-id.appspot.com",
+            messagingSenderId: "your-messaging-sender-id",
+            appId: "your-app-id"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        let map, marker;
+
+        function startTracking() {
+            if (navigator.geolocation) {
+                navigator.geolocation.watchPosition(updateLocation, showError, { enableHighAccuracy: true });
+            } else {
+                alert("Geolocation is not supported by this browser.");
+            }
+        }
+
+        function updateLocation(position) {
+            const { latitude, longitude } = position.coords;
+            const userId = "user123"; // Replace with dynamic user ID
+
+            db.ref("users/" + userId).set({ latitude, longitude });
+
+            document.getElementById("share-link").href = `track.html?user=${userId}`;
+            document.getElementById("share-link").innerText = "Share this link";
+            
+            if (!map) {
+                map = new google.maps.Map(document.getElementById("map"), {
+                    center: { lat: latitude, lng: longitude },
+                    zoom: 15
+                });
+                marker = new google.maps.Marker({ position: { lat: latitude, lng: longitude }, map: map });
+            } else {
+                marker.setPosition({ lat: latitude, lng: longitude });
+                map.setCenter({ lat: latitude, lng: longitude });
+            }
+        }
+
+        function showError(error) {
+            alert("Error getting location: " + error.message);
+        }
+    </script>
+</body>
+</html>
